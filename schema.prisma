@@ -1,0 +1,148 @@
+// FreelanceHub — Prisma Schema
+// CC26-PS101 | Supabase (PostgreSQL)
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// ENUM TYPES
+// ─────────────────────────────────────────────
+
+enum Role {
+  freelancer
+  client
+}
+
+enum ProjectStatus {
+  open
+  in_progress
+  closed
+}
+
+enum ApplicationStatus {
+  pending
+  accepted
+  rejected
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// Covers both freelancers and clients.
+// Freelancer-specific fields are nullable for clients.
+// ─────────────────────────────────────────────
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(150)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         Role
+  bio          String?  @db.Text
+
+  // Freelancer-specific fields (nullable for clients)
+  skills       String?  @db.Text
+  portfolioUrl String?  @map("portfolio_url") @db.VarChar(255)
+  hourlyRate   Decimal? @map("hourly_rate") @db.Decimal(10, 2)
+
+  // SMK context — e.g. "RPL", "Multimedia", "TKJ", "Akuntansi", "Pemasaran"
+  smkMajor     String?  @map("smk_major") @db.VarChar(100)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  postedProjects   Project[]     @relation("ClientProjects")
+  applications     Application[] @relation("FreelancerApplications")
+  writtenReviews   Review[]      @relation("ReviewAuthor")
+  receivedReviews  Review[]      @relation("ReviewSubject")
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// PROJECTS
+// Posted by clients. Open to all SMK majors
+// via flexible category field.
+// ─────────────────────────────────────────────
+
+model Project {
+  id          Int           @id @default(autoincrement())
+  clientId    Int           @map("client_id")
+  title       String        @db.VarChar(200)
+  description String        @db.Text
+
+  // Maps to SMK skill categories:
+  // "Web Development", "Desain Grafis", "Video Editing",
+  // "IT Support", "Pembukuan", "Social Media", "Data Entry"
+  category    String        @db.VarChar(100)
+
+  budgetMin   Decimal       @map("budget_min") @db.Decimal(10, 2)
+  budgetMax   Decimal       @map("budget_max") @db.Decimal(10, 2)
+  deadline    DateTime?     @db.Date
+  status      ProjectStatus @default(open)
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  client       User          @relation("ClientProjects", fields: [clientId], references: [id], onDelete: Cascade)
+  applications Application[]
+  reviews      Review[]
+
+  @@map("projects")
+}
+
+// ─────────────────────────────────────────────
+// APPLICATIONS (Lamaran)
+// One freelancer can only apply once per project.
+// ─────────────────────────────────────────────
+
+model Application {
+  id           Int               @id @default(autoincrement())
+  projectId    Int               @map("project_id")
+  freelancerId Int               @map("freelancer_id")
+  proposal     String            @db.Text
+  offeredPrice Decimal?          @map("offered_price") @db.Decimal(10, 2)
+  status       ApplicationStatus @default(pending)
+
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  freelancer User    @relation("FreelancerApplications", fields: [freelancerId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, freelancerId])  // No duplicate applications
+  @@map("applications")
+}
+
+// ─────────────────────────────────────────────
+// REVIEWS
+// Supports both directions: client → freelancer
+// and optionally freelancer → client.
+// ─────────────────────────────────────────────
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  projectId  Int      @map("project_id")
+  reviewerId Int      @map("reviewer_id")
+  revieweeId Int      @map("reviewee_id")
+  rating     Int      @db.SmallInt  // 1–5
+  comment    String?  @db.Text
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reviewer User    @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee User    @relation("ReviewSubject", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, reviewerId])  // One review per reviewer per project
+  @@map("reviews")
+}
