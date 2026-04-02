@@ -1,27 +1,33 @@
 import express from 'express';
 import * as controller from './controllers.js';
+import { authenticate, authorize } from './middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/users', controller.createUser);
-router.get('/users', controller.getUsers);
-router.get('/users/:id', controller.getUserById);
-router.put('/users/:id', controller.updateUser);
-router.delete('/users/:id', controller.deleteUser);
+// AUTHENTIKASI
+router.post('/register', controller.register);
+router.post('/login', controller.login);
+router.put('/users/:id', authenticate, controller.updateUser);
 
-router.post('/projects', controller.createProject);
+// router.post('/users', controller.createUser);
+// router.get('/users', controller.getUsers);
+// router.get('/users/:id', controller.getUserById);
+// router.delete('/users/:id', controller.deleteUser);
+
+// ROUTES PROJECT
 router.get('/projects', controller.getProjects);
 router.get('/projects/:id', controller.getProjectById);
-router.put('/projects/:id', controller.updateProject);
-router.delete('/projects/:id', controller.deleteProject);
+router.post('/projects', authenticate, authorize(['client']), controller.createProject); 
+router.put('/projects/:id', authenticate, authorize(['client']), controller.updateProject);
+router.delete('/projects/:id', authenticate, authorize(['client']), controller.deleteProject);
 
-router.post('/applications', controller.createApplication);
-router.get('/applications', controller.getApplications);
-router.put('/applications/:id', controller.updateApplication);
-router.delete('/applications/:id', controller.deleteApplication);
+router.post('/applications', authenticate, authorize(['freelancer']), controller.createApplication); 
+router.get('/applications', authenticate, controller.getApplications); 
+router.put('/applications/:id', authenticate, authorize(['client']), controller.updateApplication);
+router.delete('/applications/:id', authenticate, authorize(['freelancer']), controller.deleteApplication);
 
-router.post('/reviews', controller.createReview);
+router.post('/reviews', authenticate, controller.createReview);
 router.get('/reviews', controller.getReviews);
-router.delete('/reviews/:id', controller.deleteReview);
+router.delete('/reviews/:id', authenticate, controller.deleteReview);
 
 export default router;
