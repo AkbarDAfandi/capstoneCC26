@@ -9,13 +9,17 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// AUTHENTIKASI
+const parseId = (idString) => {
+  const id = Number(idString);
+  return isNaN(id) ? null : id;
+};
+
+// AUTENTIKASI
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role, smkMajor } = req.body;
+    const { name, email, password, role, bio, smkMajor, skills, hourlyRate, portfolioUrl } = req.body;
     
-    // Hash password sebelum disimpan [cite: 127]
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
@@ -25,12 +29,17 @@ export const register = async (req, res) => {
         email,
         passwordHash,
         role, 
-        smkMajor: role === 'freelancer' ? smkMajor : null 
+        bio,
+        smkMajor: role === 'freelancer' ? smkMajor : null,
+        skills: role === 'freelancer' ? skills : null,
+        portfolioUrl: role === 'freelancer' ? portfolioUrl : null,
+        hourlyRate: role === 'freelancer' && hourlyRate ? parseFloat(hourlyRate) : null 
       }
     });
 
     res.status(201).json({ message: "User registered successfully", userId: user.id });
   } catch (error) {
+    console.error(error.message);
     res.status(400).json({ error: error.message });
   }
 };
@@ -77,13 +86,24 @@ export const login = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (Number(id) !== req.user.id) {
+    const id = parseId(req.params.id);
+    if (!id || id !== req.user.id) {
       return res.status(403).json({ error: "Anda hanya bisa mengubah profil sendiri." });
     }
+    
+    // data yang boleh diupdate
+    const { name, bio, smkMajor, skills, portfolioUrl, hourlyRate } = req.body;
+    
     const user = await prisma.user.update({
-      where: { id: Number(id) },
-      data: req.body,
+      where: { id },
+      data: { 
+        ...(name !== undefined && { name }),
+        ...(bio !== undefined && { bio }),
+        ...(smkMajor !== undefined && { smkMajor }),
+        ...(skills !== undefined && { skills }),
+        ...(portfolioUrl !== undefined && { portfolioUrl }),
+        ...(hourlyRate !== undefined && { hourlyRate: parseFloat(hourlyRate) })
+      },
     });
     res.json(user);
   } catch (error) {
@@ -103,9 +123,13 @@ export const updateUser = async (req, res) => {
 // PROJECT
 export const createProject = async (req, res) => {
   try {
+    const { title, description, category, budgetMin, budgetMax, deadline } = req.body;
     const project = await prisma.project.create({ 
       data: { 
-        ...req.body, 
+        title, description, category, 
+        budgetMin: parseFloat(budgetMin), 
+        budgetMax: parseFloat(budgetMax), 
+        deadline: deadline ? new Date(deadline) : null,
         clientId: req.user.id 
       } 
     });
@@ -116,30 +140,54 @@ export const createProject = async (req, res) => {
 };
 
 export const getProjects = async (req, res) => {
-  const projects = await prisma.project.findMany({ include: { client: true } });
-  res.json(projects);
+  try {
+    const projects = await prisma.project.findMany({ include: { client: true } });
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const getProjectById = async (req, res) => {
-  const project = await prisma.project.findUnique({ 
-    where: { id: Number(req.params.id) },
-    include: { client: true, applications: true }
-  });
-  project ? res.json(project) : res.status(404).json({ error: 'Project not found' });
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID tidak valid' });
+
+    const project = await prisma.project.findUnique({ 
+      where: { id },
+      include: { client: true, applications: true }
+    });
+    project ? res.json(project) : res.status(404).json({ error: 'Project not found' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const updateProject = async (req, res) => {
   try {
-    const { id } = req.params;
-    const project = await prisma.project.findUnique({ where: { id: Number(id) } });
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID tidak valid' });
 
+    const project = await prisma.project.findUnique({ where: { id } });
+
+    if (!project) return res.status(404).json({ error: "Project tidak ditemukan" });
     if (project.clientId !== req.user.id) {
       return res.status(403).json({ error: "Anda hanya bisa mengubah proyek milik sendiri." });
     }
 
+    const { title, description, category, budgetMin, budgetMax, deadline, status } = req.body;
+    
     const updated = await prisma.project.update({
-      where: { id: Number(id) },
-      data: req.body,
+      where: { id },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(category !== undefined && { category }),
+        ...(budgetMin !== undefined && { budgetMin: parseFloat(budgetMin) }),
+        ...(budgetMax !== undefined && { budgetMax: parseFloat(budgetMax) }),
+        ...(deadline !== undefined && { deadline: new Date(deadline) }),
+        ...(status !== undefined && { status }),
+      },
     });
     res.json(updated);
   } catch (error) {
@@ -149,12 +197,16 @@ export const updateProject = async (req, res) => {
 
 export const deleteProject = async (req, res) => {
   try {
-    const project = await prisma.project.findUnique({ where: { id: Number(req.params.id) } });
-    if (!project || project.clientId !== req.user.id) {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID tidak valid' });
+
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project) return res.status(404).json({ error: "Project tidak ditemukan" });
+    if (project.clientId !== req.user.id) {
       return res.status(403).json({ error: "Hanya pemilik proyek yang bisa menghapus." });
     }
-    await prisma.project.delete({ where: { id: Number(req.params.id) } });
-    res.status(204).json({ message: "Project deleted successfully" });
+    await prisma.project.delete({ where: { id } });
+    res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -164,9 +216,12 @@ export const deleteProject = async (req, res) => {
 // APPLICATION
 export const createApplication = async (req, res) => {
   try {
+    const { projectId, proposal, offeredPrice } = req.body;
     const application = await prisma.application.create({ 
       data: {
-        ...req.body,
+        projectId: Number(projectId),
+        proposal,
+        offeredPrice: offeredPrice ? parseFloat(offeredPrice) : null,
         freelancerId: req.user.id
       } 
     });
@@ -198,20 +253,23 @@ export const getApplications = async (req, res) => {
 
 export const updateApplication = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID tidak valid' });
+
     const { status } = req.body;
 
     const application = await prisma.application.findUnique({
-      where: { id: Number(id) },
+      where: { id },
       include: { project: true }
     });
 
+    if (!application) return res.status(404).json({ error: "Lamaran tidak ditemukan" });
     if (application.project.clientId !== req.user.id) {
       return res.status(403).json({ error: "Hanya pemilik proyek yang bisa menerima/menolak lamaran." });
     }
 
     const updated = await prisma.application.update({
-      where: { id: Number(id) },
+      where: { id },
       data: { status },
     });
     res.json(updated);
@@ -222,11 +280,15 @@ export const updateApplication = async (req, res) => {
 
 export const deleteApplication = async (req, res) => {
   try {
-    const application = await prisma.application.findUnique({ where: { id: Number(req.params.id) } });
-    if (!application || application.freelancerId !== req.user.id) {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID tidak valid' });
+
+    const application = await prisma.application.findUnique({ where: { id } });
+    if (!application) return res.status(404).json({ error: "Lamaran tidak ditemukan" });
+    if (application.freelancerId !== req.user.id) {
       return res.status(403).json({ error: "Anda tidak bisa membatalkan lamaran orang lain." });
     }
-    await prisma.application.delete({ where: { id: Number(req.params.id) } });
+    await prisma.application.delete({ where: { id } });
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -236,9 +298,13 @@ export const deleteApplication = async (req, res) => {
 // REVIEW
 export const createReview = async (req, res) => {
   try {
+    const { projectId, revieweeId, rating, comment } = req.body;
     const review = await prisma.review.create({ 
       data: {
-        ...req.body,
+        projectId: Number(projectId),
+        revieweeId: Number(revieweeId),
+        rating: Number(rating),
+        comment,
         reviewerId: req.user.id
       } 
     });
@@ -249,17 +315,25 @@ export const createReview = async (req, res) => {
 };
 
 export const getReviews = async (req, res) => {
-  const reviews = await prisma.review.findMany();
-  res.json(reviews);
+  try {
+    const reviews = await prisma.review.findMany();
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const deleteReview = async (req, res) => {
   try {
-    const review = await prisma.review.findUnique({ where: { id: Number(req.params.id) } });
-    if (!review || review.reviewerId !== req.user.id) {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID tidak valid' });
+
+    const review = await prisma.review.findUnique({ where: { id } });
+    if (!review) return res.status(404).json({ error: "Review tidak ditemukan" });
+    if (review.reviewerId !== req.user.id) {
       return res.status(403).json({ error: "Anda tidak bisa menghapus review orang lain." });
     }
-    await prisma.review.delete({ where: { id: Number(req.params.id) } });
+    await prisma.review.delete({ where: { id } });
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: error.message });
