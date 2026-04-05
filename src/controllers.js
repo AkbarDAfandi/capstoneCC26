@@ -79,10 +79,10 @@ export const login = async (req, res) => {
 //   res.json(users);
 // };
 
-// export const getUserById = async (req, res) => {
-//   const user = await prisma.user.findUnique({ where: { id: Number(req.params.id) } });
-//   user ? res.json(user) : res.status(404).json({ error: 'User not found' });
-// };
+export const getUserById = async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { id: Number(req.params.id) } });
+  user ? res.json(user) : res.status(404).json({ error: 'User not found' });
+};
 
 export const updateUser = async (req, res) => {
   try {
@@ -242,7 +242,7 @@ export const getApplications = async (req, res) => {
     } else {
       applications = await prisma.application.findMany({
         where: { freelancerId: req.user.id },
-        include: { project: true }
+        include: { project: { include: { client: true } } }
       });
     }
     res.json(applications);
@@ -316,7 +316,13 @@ export const createReview = async (req, res) => {
 
 export const getReviews = async (req, res) => {
   try {
-    const reviews = await prisma.review.findMany();
+    const reviews = await prisma.review.findMany({
+      include: {
+        reviewer: { select: { id: true, name: true } },
+        reviewee: { select: { id: true, name: true } },
+        project: { select: { id: true, title: true, clientId: true } }
+      }
+    });
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });

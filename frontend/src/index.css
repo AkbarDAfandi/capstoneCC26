@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --color-utama: #045a8c;
+  --color-gelap: #0f172a;
+  --color-terang: #f8fafc;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply bg-terang text-gelap transition-colors duration-500 ease-in-out antialiased;
+  }
+  .dark body {
+    @apply bg-gelap text-terang;
+  }
+}
+
+.swal2-popup {
+  border-radius: 1.5rem !important;
+}
+
+.dark .swal2-popup {
+  background: var(--color-gelap) !important;
+  color: var(--color-terang) !important;
+  border: 1px solid #1e293b; 
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .swal2-title {
+  color: var(--color-terang) !important;
+}
+
+.dark .swal2-html-container {
+  color: #94a3b8 !important; 
+}
