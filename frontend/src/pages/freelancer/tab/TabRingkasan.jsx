@@ -21,7 +21,6 @@ export default function TabRingkasan({
         </div>
       ) : (
         <>
-          {/* Stat Cards Row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <KartuStat
               ikon={<Send size={18} />}
@@ -49,10 +48,8 @@ export default function TabRingkasan({
             />
           </div>
 
-          {/* Charts Row */}
           <div className="grid lg:grid-cols-3 gap-4">
 
-            {/* Bar Chart */}
             <div className="lg:col-span-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
@@ -67,7 +64,6 @@ export default function TabRingkasan({
               <GrafikBar data={dataGrafik} />
             </div>
 
-            {/* Success Rate Ring */}
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6 flex flex-col items-center justify-center gap-4">
               <h3 className="text-base font-bold text-gelap dark:text-terang">Tingkat Keberhasilan</h3>
               <CincinProgres
@@ -88,10 +84,8 @@ export default function TabRingkasan({
             </div>
           </div>
 
-          {/* Bottom Row: Quick Stats + Recent Applications */}
           <div className="grid lg:grid-cols-3 gap-4">
 
-            {/* Quick Insights */}
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6 space-y-4">
               <h3 className="text-base font-bold text-gelap dark:text-terang mb-1">Insight Cepat</h3>
 
@@ -119,7 +113,6 @@ export default function TabRingkasan({
               </div>
             </div>
 
-            {/* Recent Applications */}
             <div className="lg:col-span-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-bold text-gelap dark:text-terang">Lamaran Terbaru</h3>

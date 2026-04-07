@@ -27,7 +27,7 @@ export default function DashboardFreelancer() {
   const [memuatProfil, setMemuatProfil] = useState(false);
   const [menyimpanProfil, setMenyimpanProfil] = useState(false);
 
-  // ── Helpers ──
+  // helper
 
   const dapatkanIdDariToken = () => {
     try {
@@ -70,7 +70,7 @@ export default function DashboardFreelancer() {
     return bagian.join('.');
   };
 
-  // ── Data Fetching ──
+  // data fetching
 
   useEffect(() => {
     const id = dapatkanIdDariToken();
@@ -105,7 +105,7 @@ export default function DashboardFreelancer() {
     finally { setMemuatProfil(false); }
   };
 
-  // ── Profile Handlers ──
+  // handler profil
 
   const tanganiInputProfil = (e) => {
     let nilai = e.target.value;
@@ -132,7 +132,7 @@ export default function DashboardFreelancer() {
 
   const apakahAdaPerubahan = JSON.stringify(dataProfil) !== JSON.stringify(dataProfilAsli);
 
-  // ── Computed Stats ──
+  // stat
 
   const statistik = useMemo(() => {
     const total = daftarLamaran.length;
@@ -163,7 +163,7 @@ export default function DashboardFreelancer() {
     return hasil;
   }, [daftarLamaran]);
 
-  // ── Tab definitions ──
+  // tab ringkas
 
   const daftarTab = [
     { id: 'ringkasan', label: 'Ringkasan', ikon: <BarChart3 size={18} /> },
@@ -172,7 +172,7 @@ export default function DashboardFreelancer() {
     { id: 'profil', label: 'Pengaturan', ikon: <UserCircle size={18} /> },
   ];
 
-  // ── Render ──
+  // render
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gelap relative overflow-hidden py-10">
@@ -181,7 +181,6 @@ export default function DashboardFreelancer() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl lg:text-3xl font-extrabold text-gelap dark:text-terang">
@@ -194,15 +193,14 @@ export default function DashboardFreelancer() {
           </Link>
         </div>
 
-        {/* Tabs */}
         <div className="flex bg-white/60 dark:bg-gray-800/60 backdrop-blur-md p-1.5 rounded-xl w-full max-w-lg mb-8 border border-gray-100 dark:border-gray-800">
           {daftarTab.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setTabAktif(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${tabAktif === tab.id
-                  ? 'bg-white dark:bg-gray-700 text-utama shadow-sm'
-                  : 'text-gray-500 hover:text-gelap dark:hover:text-terang'
+                ? 'bg-white dark:bg-gray-700 text-utama shadow-sm'
+                : 'text-gray-500 hover:text-gelap dark:hover:text-terang'
                 }`}
             >
               {tab.ikon}
@@ -211,7 +209,6 @@ export default function DashboardFreelancer() {
           ))}
         </div>
 
-        {/* Tab Content */}
         {tabAktif === 'ringkasan' && (
           <TabRingkasan
             statistik={statistik}

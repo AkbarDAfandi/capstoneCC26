@@ -47,7 +47,7 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close dropdown on route change
+  // close dropdown
   useEffect(() => {
     setBukaMenu(false);
   }, [lokasi.pathname]);
@@ -79,7 +79,7 @@ export default function Navbar() {
     });
   };
 
-  // Helper: check if a path is active
+  // cek path
   const isActive = (path) => {
     if (path === '/') return lokasi.pathname === '/';
     return lokasi.pathname.startsWith(path);
@@ -104,7 +104,6 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group shrink-0">
             <div className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm border border-gray-100 dark:border-gray-700 p-0.5 group-hover:scale-110 transition-transform duration-200">
               <img
@@ -118,10 +117,8 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Right Section */}
           <div className="flex items-center gap-6">
 
-            {/* Navigation Links */}
             <div className="hidden md:flex items-center gap-5">
               <Link to="/" className={navLinkClass('/')}>
                 <Home size={15} />
@@ -142,10 +139,8 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Divider */}
             <div className="hidden md:block w-px h-5 bg-gray-200 dark:bg-gray-700" />
 
-            {/* Theme Toggle */}
             <button
               onClick={saklarTema}
               className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
@@ -154,7 +149,6 @@ export default function Navbar() {
               {temaGelap ? <Sun size={18} /> : <Moon size={18} />}
             </button>
 
-            {/* Profile Dropdown or Auth Buttons */}
             {dataUser ? (
               <div className="relative" ref={refMenu}>
                 <button
@@ -173,7 +167,6 @@ export default function Navbar() {
                   />
                 </button>
 
-                {/* Dropdown Menu */}
                 {bukaMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                     <Link

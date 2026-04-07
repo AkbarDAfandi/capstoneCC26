@@ -14,7 +14,7 @@ export default function Home() {
         setSudahLogin(true);
         setPeran(payload.role);
       } catch (e) {
-        // Abaikan
+        // jgn dihapus
       }
     }
   }, []);

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import tarikData from '../../../api/koneksi';
 
-// ── Komponen Bintang ──
+// bintang
 function BintangRating({ nilai, onChange, ukuran = 20, bisaDiklik = false }) {
   return (
     <div className="flex gap-0.5">
@@ -31,7 +31,7 @@ function BintangRating({ nilai, onChange, ukuran = 20, bisaDiklik = false }) {
   );
 }
 
-// ── Distribusi Bintang Bar ──
+// bar bintang
 function BarDistribusi({ bintang, jumlah, total }) {
   const persen = total > 0 ? (jumlah / total) * 100 : 0;
   return (
@@ -55,12 +55,11 @@ export default function TabUlasan({ idPengguna }) {
   const [ulasanDitulis, setUlasanDitulis] = useState([]);
   const [memuatUlasan, setMemuatUlasan] = useState(true);
 
-  // Proyek yang bisa direview (lamaran diterima)
+  // lamaran diterima
   const [proyekBisaReview, setProyekBisaReview] = useState([]);
   const [memuatProyek, setMemuatProyek] = useState(true);
 
-  // Form state
-  const [formBuka, setFormBuka] = useState(null); // projectId yang formnya dibuka
+  const [formBuka, setFormBuka] = useState(null); // id project yg formnya dibuka
   const [rating, setRating] = useState(0);
   const [komentar, setKomentar] = useState('');
   const [mengirim, setMengirim] = useState(false);
@@ -90,7 +89,7 @@ export default function TabUlasan({ idPengguna }) {
     setMemuatProyek(true);
     try {
       const respon = await tarikData.get('/applications');
-      // Hanya lamaran yang diterima
+      // lamaran yg diterima
       const diterima = respon.data.filter(l => l.status === 'accepted');
       setProyekBisaReview(diterima);
     } catch (eror) {
@@ -126,7 +125,7 @@ export default function TabUlasan({ idPengguna }) {
     }
   };
 
-  // ── Hitung statistik ──
+  // hitung statistik
   const rataRata = ulasanDiterima.length > 0
     ? (ulasanDiterima.reduce((s, r) => s + r.rating, 0) / ulasanDiterima.length).toFixed(1)
     : '0.0';
@@ -136,7 +135,7 @@ export default function TabUlasan({ idPengguna }) {
     jumlah: ulasanDiterima.filter(r => r.rating === b).length
   }));
 
-  // Proyek yang sudah direview oleh freelancer
+  // proyek yg sudah direview
   const idProyekSudahReview = ulasanDitulis.map(r => r.projectId);
 
   if (memuatUlasan || memuatProyek) {
@@ -150,10 +149,8 @@ export default function TabUlasan({ idPengguna }) {
   return (
     <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
 
-      {/* ── Ringkasan Rating + Distribusi ── */}
       <div className="grid lg:grid-cols-3 gap-4">
 
-        {/* Rating Besar */}
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6 flex flex-col items-center justify-center gap-3">
           <p className="text-5xl font-extrabold text-gelap dark:text-terang">{rataRata}</p>
           <BintangRating nilai={Math.round(parseFloat(rataRata))} ukuran={22} />
@@ -162,7 +159,6 @@ export default function TabUlasan({ idPengguna }) {
           </p>
         </div>
 
-        {/* Distribusi Bintang */}
         <div className="lg:col-span-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
           <h3 className="text-base font-bold text-gelap dark:text-terang mb-4">Distribusi Rating</h3>
           <div className="space-y-2.5">
@@ -173,7 +169,6 @@ export default function TabUlasan({ idPengguna }) {
         </div>
       </div>
 
-      {/* ── Daftar Ulasan Diterima ── */}
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
         <h3 className="text-base font-bold text-gelap dark:text-terang mb-4 flex items-center gap-2">
           <MessageSquare size={18} className="text-utama" />
@@ -220,7 +215,6 @@ export default function TabUlasan({ idPengguna }) {
         )}
       </div>
 
-      {/* ── Tulis Ulasan untuk Klien ── */}
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
         <h3 className="text-base font-bold text-gelap dark:text-terang mb-4 flex items-center gap-2">
           <Send size={18} className="text-utama" />
@@ -235,7 +229,6 @@ export default function TabUlasan({ idPengguna }) {
 
               return (
                 <div key={lamaran.id} className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden">
-                  {/* Header */}
                   <button
                     onClick={() => {
                       if (sudahReview) return;
@@ -268,7 +261,6 @@ export default function TabUlasan({ idPengguna }) {
                     )}
                   </button>
 
-                  {/* Form (expandable) */}
                   {sedangBuka && !sudahReview && (
                     <div className="border-t border-gray-100 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-900/30 space-y-4">
                       <div>

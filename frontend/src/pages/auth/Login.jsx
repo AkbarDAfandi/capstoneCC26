@@ -17,7 +17,7 @@ export default function Login() {
         const payload = JSON.parse(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
         arahkan(payload.role === 'client' ? '/dashboard/client' : '/dashboard/freelancer');
       } catch (e) {
-        // Abaikan
+        // ojok dihapus komen iki
       }
     }
   }, [arahkan]);
