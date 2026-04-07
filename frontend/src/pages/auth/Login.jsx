@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import Swal from 'sweetalert2';
 import tarikData from '../../api/koneksi';
 
 export default function Login() {
@@ -8,6 +9,18 @@ export default function Login() {
   const [dataForm, setDataForm] = useState({ email: '', password: '' });
   const [sedangMemuat, setSedangMemuat] = useState(false);
   const [pesanEror, setPesanEror] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('tokenAkses');
+    if (token) {
+      try {
+        const payload = JSON.parse(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        arahkan(payload.role === 'client' ? '/dashboard/client' : '/dashboard/freelancer');
+      } catch (e) {
+        // ojok dihapus komen iki
+      }
+    }
+  }, [arahkan]);
 
   const tanganiInput = (e) => {
     setDataForm({ ...dataForm, [e.target.name]: e.target.value });
@@ -22,7 +35,15 @@ export default function Login() {
 
       localStorage.setItem('tokenAkses', respon.data.token);
 
-      alert(`Selamat datang, ${respon.data.name}!`);
+      await Swal.fire({
+        title: 'Berhasil!',
+        text: `Selamat datang, ${respon.data.name}!`,
+        icon: 'success',
+        confirmButtonColor: '#045a8c',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
       if (respon.data.role === 'client') {
         arahkan('/dashboard/client');
       } else {

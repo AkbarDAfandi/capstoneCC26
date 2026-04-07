@@ -11,7 +11,7 @@ router.put('/users/:id', authenticate, controller.updateUser);
 
 // router.post('/users', controller.createUser);
 // router.get('/users', controller.getUsers);
-// router.get('/users/:id', controller.getUserById);
+router.get('/users/:id', controller.getUserById);
 // router.delete('/users/:id', controller.deleteUser);
 
 // ROUTES PROJECT

@@ -1,7 +1,23 @@
+import { useState, useEffect } from 'react';
 import { ArrowRight, Code, PenTool, LayoutTemplate, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Home() {
+  const [sudahLogin, setSudahLogin] = useState(false);
+  const [peran, setPeran] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('tokenAkses');
+    if (token) {
+      try {
+        const payload = JSON.parse(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        setSudahLogin(true);
+        setPeran(payload.role);
+      } catch (e) {
+        // jgn dihapus
+      }
+    }
+  }, []);
   const daftarLayanan = [
     { ikon: <Code size={28} />, judul: 'Ngoding Bebas', spek: 'Ambil proyek Web Dev atau API.' },
     { ikon: <LayoutTemplate size={28} />, judul: 'Desain UI/UX', spek: 'Wujudkan ide lewat desain Figma.' },
@@ -38,9 +54,15 @@ export default function Home() {
               <Link to="/projects" className="bg-utama text-white px-8 py-4 rounded-full font-bold hover:shadow-lg hover:shadow-utama/40 hover:-translate-y-1 transition-all flex items-center gap-2">
                 Eksplorasi Proyek <ArrowRight size={20} />
               </Link>
-              <Link to="/register" className="bg-gray-100 dark:bg-gray-800 text-gelap dark:text-terang px-8 py-4 rounded-full font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
-                Jadi Freelancer
-              </Link>
+              {sudahLogin ? (
+                <Link to={peran === 'client' ? '/dashboard/client' : '/dashboard/freelancer'} className="bg-gray-100 dark:bg-gray-800 text-gelap dark:text-terang px-8 py-4 rounded-full font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
+                  Ke Dashboard Saya
+                </Link>
+              ) : (
+                <Link to="/register" className="bg-gray-100 dark:bg-gray-800 text-gelap dark:text-terang px-8 py-4 rounded-full font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
+                  Jadi Freelancer
+                </Link>
+              )}
             </div>
           </div>
 

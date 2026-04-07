@@ -7,6 +7,8 @@ import Register from './pages/auth/Register';
 import Projects from './pages/public/Projects';
 import DashboardClient from './pages/client/DashboardClient';
 import DashboardFreelancer from './pages/freelancer/DashboardFreelancer';
+import ProjectDetail from './pages/public/ProjectDetail';
+import Profile from './pages/public/Profile';
 
 export default function App() {
   return (
@@ -20,6 +22,8 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/profile/:id" element={<Profile />} />
               <Route path="/dashboard/client" element={<DashboardClient />} />
               <Route path="/dashboard/freelancer" element={<DashboardFreelancer />} />
             </Routes>
