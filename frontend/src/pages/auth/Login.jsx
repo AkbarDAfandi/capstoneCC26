@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import Swal from 'sweetalert2';
 import tarikData from '../../api/koneksi';
+
 export default function Login() {
   const arahkan = useNavigate();
   const [dataForm, setDataForm] = useState({ email: '', password: '' });

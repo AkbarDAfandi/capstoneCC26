@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Briefcase, GraduationCap, Loader2 } from 'lucide-react';
 import tarikData from '../../api/koneksi';
+import Swal from 'sweetalert2';
 
 const JURUSAN_SMK = ['RPL', 'Multimedia', 'TKJ', 'Akuntansi', 'Pemasaran', 'Adm. Perkantoran', 'Lainnya'];
 
@@ -44,10 +45,19 @@ export default function Register() {
       }
 
       const respon = await tarikData.post('/register', payload);
-      alert('Pendaftaran Berhasil! Silakan masuk.');
+      
+      await Swal.fire({
+        title: 'Sukses!',
+        text: 'Pendaftaran Berhasil! Silakan masuk.',
+        icon: 'success',
+        confirmButtonColor: '#045a8c',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
       arahkan('/login');
     } catch (eror) {
-      setPesanEror(eror.response?.data?.error || 'Gagal daftar cuy, cek lagi datanya.');
+      setPesanEror(eror.response?.data?.error || 'Gagal daftar, cek lagi datanya.');
     } finally {
       setSedangMemuat(false);
     }
