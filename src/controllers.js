@@ -2,8 +2,10 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import 'dotenv/config';
+import crypto from 'crypto'
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { sendVerificationEmail } from './middleware/sendVerificationEmail.js';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -19,7 +21,12 @@ const parseId = (idString) => {
 export const register = async (req, res) => {
   try {
     const { name, email, password, role, bio, smkMajor, skills, hourlyRate, portfolioUrl } = req.body;
-    
+
+    const existing = await prisma.user.findUnique({ where: { email } })
+    if (existing) {
+      return res.status(409).json({ error: 'Email sudah terdaftar.' })
+    }
+
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
@@ -28,21 +35,69 @@ export const register = async (req, res) => {
         name,
         email,
         passwordHash,
-        role, 
+        role,
         bio,
         smkMajor: role === 'freelancer' ? smkMajor : null,
         skills: role === 'freelancer' ? skills : null,
         portfolioUrl: role === 'freelancer' ? portfolioUrl : null,
-        hourlyRate: role === 'freelancer' && hourlyRate ? parseFloat(hourlyRate) : null 
+        hourlyRate: role === 'freelancer' && hourlyRate ? parseFloat(hourlyRate) : null
       }
     });
 
-    res.status(201).json({ message: "User registered successfully", userId: user.id });
+    const token = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+    await prisma.verificationToken.create({
+      data: { userId: user.id, token, expiresAt }
+    })
+
+    // Kirim verifikasi email lewat resend
+    const verifyUrl = `${process.env.APP_URL}/api/auth/verify-email?token=${token}`
+
+    await sendVerificationEmail(email, token)
+
+    res.status(201).json({
+      message: 'Registrasi berhasil! Cek email kamu untuk verifikasi.',
+      userId: user.id
+    });
   } catch (error) {
     console.error(error.message);
     res.status(400).json({ error: error.message });
   }
 };
+
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query
+
+    const record = await prisma.verificationToken.findUnique({
+      where: { token }
+    })
+
+    if (!record) {
+      return res.status(400).json({ error: 'Token tidak valid.' })
+    }
+
+    if (record.expiresAt < new Date()) {
+      await prisma.verificationToken.delete({ where: { token } })
+      return res.status(400).json({ error: 'Link sudah kadaluarsa. Silakan daftar ulang.' })
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: record.userId },
+        data: { isVerified: true }
+      }),
+      prisma.verificationToken.delete({ where: { token } })
+    ])
+
+    return res.redirect(`${process.env.CLIENT_URL}/login?verified=true`)
+
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).json({ error: error.message })
+  }
+}
 
 export const login = async (req, res) => {
   try {
@@ -51,6 +106,10 @@ export const login = async (req, res) => {
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ error: 'Harap verifikasi email kamu terlebih dahulu.' });
     }
 
     const token = jwt.sign(
@@ -90,13 +149,13 @@ export const updateUser = async (req, res) => {
     if (!id || id !== req.user.id) {
       return res.status(403).json({ error: "Anda hanya bisa mengubah profil sendiri." });
     }
-    
+
     // data yang boleh diupdate
     const { name, bio, smkMajor, skills, portfolioUrl, hourlyRate } = req.body;
-    
+
     const user = await prisma.user.update({
       where: { id },
-      data: { 
+      data: {
         ...(name !== undefined && { name }),
         ...(bio !== undefined && { bio }),
         ...(smkMajor !== undefined && { smkMajor }),
@@ -124,14 +183,14 @@ export const updateUser = async (req, res) => {
 export const createProject = async (req, res) => {
   try {
     const { title, description, category, budgetMin, budgetMax, deadline } = req.body;
-    const project = await prisma.project.create({ 
-      data: { 
-        title, description, category, 
-        budgetMin: parseFloat(budgetMin), 
-        budgetMax: parseFloat(budgetMax), 
+    const project = await prisma.project.create({
+      data: {
+        title, description, category,
+        budgetMin: parseFloat(budgetMin),
+        budgetMax: parseFloat(budgetMax),
         deadline: deadline ? new Date(deadline) : null,
-        clientId: req.user.id 
-      } 
+        clientId: req.user.id
+      }
     });
     res.status(201).json(project);
   } catch (error) {
@@ -153,7 +212,7 @@ export const getProjectById = async (req, res) => {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ error: 'ID tidak valid' });
 
-    const project = await prisma.project.findUnique({ 
+    const project = await prisma.project.findUnique({
       where: { id },
       include: { client: true, applications: true }
     });
@@ -176,7 +235,7 @@ export const updateProject = async (req, res) => {
     }
 
     const { title, description, category, budgetMin, budgetMax, deadline, status } = req.body;
-    
+
     const updated = await prisma.project.update({
       where: { id },
       data: {
@@ -217,13 +276,13 @@ export const deleteProject = async (req, res) => {
 export const createApplication = async (req, res) => {
   try {
     const { projectId, proposal, offeredPrice } = req.body;
-    const application = await prisma.application.create({ 
+    const application = await prisma.application.create({
       data: {
         projectId: Number(projectId),
         proposal,
         offeredPrice: offeredPrice ? parseFloat(offeredPrice) : null,
         freelancerId: req.user.id
-      } 
+      }
     });
     res.status(201).json(application);
   } catch (error) {
@@ -299,14 +358,14 @@ export const deleteApplication = async (req, res) => {
 export const createReview = async (req, res) => {
   try {
     const { projectId, revieweeId, rating, comment } = req.body;
-    const review = await prisma.review.create({ 
+    const review = await prisma.review.create({
       data: {
         projectId: Number(projectId),
         revieweeId: Number(revieweeId),
         rating: Number(rating),
         comment,
         reviewerId: req.user.id
-      } 
+      }
     });
     res.status(201).json(review);
   } catch (error) {
