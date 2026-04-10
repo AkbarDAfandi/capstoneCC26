@@ -19,7 +19,7 @@ export default function Register() {
         const payload = JSON.parse(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
         arahkan(payload.role === 'client' ? '/dashboard/client' : '/dashboard/freelancer');
       } catch (e) {
-        // Abaikan
+        // jgn dihapus
       }
     }
   }, [arahkan]);
@@ -47,11 +47,11 @@ export default function Register() {
       const respon = await tarikData.post('/register', payload);
       
       await Swal.fire({
-        title: 'Sukses!',
-        text: 'Pendaftaran Berhasil! Silakan masuk.',
+        title: 'Cek Email Kamu!',
+        text: 'Pendaftaran berhasil. Kami telah mengirimkan link verifikasi ke emailmu.',
         icon: 'success',
         confirmButtonColor: '#045a8c',
-        timer: 2000,
+        timer: 3000,
         showConfirmButton: false
       });
 
@@ -94,7 +94,7 @@ export default function Register() {
           </div>
         )}
 
-        <form onSubmit={tanganiKirim} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <form onSubmit={tanganiKirim} autoComplete="off" className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="md:col-span-2">
             <label className="block text-sm font-bold mb-2">Nama Lengkap</label>
             <div className="relative">

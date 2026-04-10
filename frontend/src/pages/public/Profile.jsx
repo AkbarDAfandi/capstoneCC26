@@ -49,25 +49,21 @@ export default function Profile() {
   const tagSkill = pengguna.skills ? pengguna.skills.split(',').map(s => s.trim()) : [];
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-terang dark:bg-gelap relative overflow-hidden pb-20">
+    <div className="min-h-[calc(100vh-80px)] bg-terang dark:bg-gelap relative overflow-hidden pb-20 pt-12">
       <div className="absolute top-[-20%] right-[-10%] w-120 h-120 bg-utama/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
 
-      <div className="h-48 md:h-64 bg-linear-to-r from-utama/80 to-blue-500/80 w-full relative">
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10">
-        <button onClick={() => arahkan(-1)} className="absolute top-4 left-4 md:-left-8 text-white hover:scale-110 transition-transform bg-black/20 p-2 rounded-4xl backdrop-blur-md">
-          <ArrowLeft size={20} />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <button onClick={() => arahkan(-1)} className="mb-6 flex items-center gap-2 text-gray-500 hover:text-utama dark:text-gray-400 dark:hover:text-utama transition-colors font-semibold bg-white/50 dark:bg-gray-800/50 backdrop-blur-md px-4 py-2 rounded-xl w-fit border border-gray-200 dark:border-gray-700">
+          <ArrowLeft size={18} /> Kembali
         </button>
 
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-[2.5rem] shadow-2xl p-8 mb-8 text-center md:text-left flex flex-col md:flex-row items-center gap-8">
-          <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 bg-gelap dark:bg-terang rounded-4xl flex items-center justify-center -mt-16 md:-mt-24 shadow-xl border-4 border-white dark:border-gray-800 rotate-3">
-            <User size={64} className="text-white dark:text-gelap" />
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-4xl shadow-xl p-8 md:p-10 mb-8 flex flex-col md:flex-row items-center md:items-start gap-6">
+          <div className="w-24 h-24 shrink-0 bg-blue-50 dark:bg-gray-900 border border-blue-100 dark:border-gray-700 rounded-2xl flex items-center justify-center">
+            <User size={40} className="text-utama dark:text-gray-400" />
           </div>
           
-          <div className="flex-1">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gelap dark:text-terang mb-2 tracking-tight">
+          <div className="flex-1 text-center md:text-left md:mt-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-gelap dark:text-terang mb-4 tracking-tight">
               {pengguna.name}
             </h1>
             <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">

@@ -30,30 +30,33 @@ export const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        passwordHash,
-        role,
-        bio,
-        smkMajor: role === 'freelancer' ? smkMajor : null,
-        skills: role === 'freelancer' ? skills : null,
-        portfolioUrl: role === 'freelancer' ? portfolioUrl : null,
-        hourlyRate: role === 'freelancer' && hourlyRate ? parseFloat(hourlyRate) : null
-      }
-    });
-
     const token = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
-    await prisma.verificationToken.create({
-      data: { userId: user.id, token, expiresAt }
-    })
+    // Transaction supaya user + token dibuat bersamaan (atomic)
+    const user = await prisma.$transaction(async (tx) => {
+      const userBaru = await tx.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          role,
+          bio,
+          smkMajor: role === 'freelancer' ? smkMajor : null,
+          skills: role === 'freelancer' ? skills : null,
+          portfolioUrl: role === 'freelancer' ? portfolioUrl : null,
+          hourlyRate: role === 'freelancer' && hourlyRate ? parseFloat(hourlyRate) : null
+        }
+      });
+
+      await tx.verificationToken.create({
+        data: { userId: userBaru.id, token, expiresAt }
+      });
+
+      return userBaru;
+    });
 
     // Kirim verifikasi email lewat resend
-    const verifyUrl = `${process.env.APP_URL}/api/auth/verify-email?token=${token}`
-
     await sendVerificationEmail(email, token)
 
     res.status(201).json({
@@ -91,7 +94,7 @@ export const verifyEmail = async (req, res) => {
       prisma.verificationToken.delete({ where: { token } })
     ])
 
-    return res.redirect(`${process.env.CLIENT_URL}/login?verified=true`)
+    return res.json({ message: 'Email berhasil diverifikasi!' })
 
   } catch (error) {
     console.error(error.message)
@@ -189,7 +192,9 @@ export const createProject = async (req, res) => {
         budgetMin: parseFloat(budgetMin),
         budgetMax: parseFloat(budgetMax),
         deadline: deadline ? new Date(deadline) : null,
-        clientId: req.user.id
+        client: {
+          connect: { id: req.user.id }
+        }
       }
     });
     res.status(201).json(project);
@@ -286,7 +291,12 @@ export const createApplication = async (req, res) => {
     });
     res.status(201).json(application);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    if (error.code === 'P2002') {
+      return res.status(400).json({ 
+        error: 'Kamu sudah pernah mengirimkan penawaran untuk proyek ini sebelumnya.' 
+      });
+    }
+    res.status(500).json({ error: 'Terjadi kesalahan sistem.' });
   }
 };
 

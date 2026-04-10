@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import {
-  Star, MessageSquare, Send, Loader2, User, ChevronDown, ChevronUp
+  Star, MessageSquare, Send, Loader2, User, ChevronDown, ChevronUp, Trash2
 } from 'lucide-react';
 import tarikData from '../../../api/koneksi';
 
@@ -125,6 +125,28 @@ export default function TabUlasan({ idPengguna }) {
     }
   };
 
+  const hapusUlasan = async (idUlasan) => {
+    Swal.fire({
+      title: 'Hapus Ulasan?',
+      text: 'Ulasan yang dihapus tidak bisa dikembalikan.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#d33'
+    }).then(async (hasil) => {
+      if (hasil.isConfirmed) {
+        try {
+          await tarikData.delete(`/reviews/${idUlasan}`);
+          Swal.fire({ title: 'Terhapus', text: 'Ulasan berhasil dihapus.', icon: 'success', timer: 2000, showConfirmButton: false });
+          ambilSemuaUlasan();
+        } catch (eror) {
+          Swal.fire('Gagal', eror.response?.data?.error || 'Terjadi kesalahan saat menghapus ulasan.', 'error');
+        }
+      }
+    });
+  };
+
   // hitung statistik
   const rataRata = ulasanDiterima.length > 0
     ? (ulasanDiterima.reduce((s, r) => s + r.rating, 0) / ulasanDiterima.length).toFixed(1)
@@ -214,6 +236,54 @@ export default function TabUlasan({ idPengguna }) {
           </div>
         )}
       </div>
+
+      {ulasanDitulis.length > 0 && (
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
+          <h3 className="text-base font-bold text-gelap dark:text-terang mb-4 flex items-center gap-2">
+            <Send size={18} className="text-utama" />
+            Ulasan yang Kamu Tulis
+          </h3>
+          <div className="space-y-4">
+            {ulasanDitulis.map((ulasan) => (
+              <div key={ulasan.id} className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-linear-to-br from-utama to-blue-400 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      {ulasan.reviewee?.name ? ulasan.reviewee.name.charAt(0).toUpperCase() : <User size={14} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gelap dark:text-terang">
+                        Untuk: {ulasan.reviewee?.name || 'Pengguna'}
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                        {ulasan.project?.title || 'Proyek'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <BintangRating nilai={ulasan.rating} ukuran={14} />
+                    <button
+                      onClick={() => hapusUlasan(ulasan.id)}
+                      title="Hapus ulasan"
+                      className="p-1.5 bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+                {ulasan.comment && (
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 pl-12 italic">
+                    "{ulasan.comment}"
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 pl-12">
+                  {new Date(ulasan.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
         <h3 className="text-base font-bold text-gelap dark:text-terang mb-4 flex items-center gap-2">

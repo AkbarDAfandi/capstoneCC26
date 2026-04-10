@@ -7,10 +7,10 @@ import {
 } from 'lucide-react';
 import tarikData from '../../api/koneksi';
 
-import TabRingkasan from './tab/TabRingkasan';
-import TabLamaran from './tab/TabLamaran';
-import TabPengaturan from './tab/TabPengaturan';
-import TabUlasan from './tab/TabUlasan';
+import TabRingkasan from './Tab/TabRingkasan';
+import TabLamaran from './Tab/TabLamaran';
+import TabPengaturan from './Tab/TabPengaturan';
+import TabUlasan from './Tab/TabUlasan';
 
 export default function DashboardFreelancer() {
   const arahkan = useNavigate();
@@ -87,6 +87,29 @@ export default function DashboardFreelancer() {
       setDaftarLamaran(respon.data);
     } catch (eror) { console.error(eror); }
     finally { setMemuatLamaran(false); }
+  };
+
+  const batalkanLamaran = async (id) => {
+    Swal.fire({
+      title: 'Tarik Lamaran?',
+      text: 'Lamaran ini akan dibatalkan dan dihapus secara permanen.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e3342f',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Ya, Tarik!',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await tarikData.delete(`/applications/${id}`);
+          Swal.fire({ title: 'Ditarik!', text: 'Lamaran kamu telah dibatalkan.', icon: 'success', timer: 1500, showConfirmButton: false });
+          ambilDaftarLamaran(); // Refresh data
+        } catch (error) {
+          Swal.fire('Gagal', error.response?.data?.error || 'Terjadi kesalahan saat membatalkan lamaran.', 'error');
+        }
+      }
+    });
   };
 
   const ambilDataProfil = async (id) => {
@@ -228,6 +251,7 @@ export default function DashboardFreelancer() {
             warnaStatus={warnaStatus}
             ikonStatus={ikonStatus}
             teksStatus={teksStatus}
+            batalkanLamaran={batalkanLamaran}
           />
         )}
 

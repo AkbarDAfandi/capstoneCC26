@@ -19,7 +19,7 @@ export default function TabPengaturan({
           <Loader2 className="animate-spin text-utama" size={40} />
         </div>
       ) : (
-        <form onSubmit={simpanProfil} className="space-y-5">
+        <form onSubmit={simpanProfil} autoComplete="off" className="space-y-5">
           <div className="grid md:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nama Lengkap</label>
