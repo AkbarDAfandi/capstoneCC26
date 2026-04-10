@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ClipboardList, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function TabLamaran({
-  daftarLamaran, memuatLamaran, warnaStatus, ikonStatus, teksStatus
+  daftarLamaran, memuatLamaran, warnaStatus, ikonStatus, teksStatus, batalkanLamaran
 }) {
   return (
     <div className="animate-[fadeIn_0.3s_ease-out]">
@@ -33,12 +33,23 @@ export default function TabLamaran({
                 <p className="text-sm text-gelap dark:text-gray-300 italic line-clamp-2">"{lamaran.proposal}"</p>
               </div>
 
-              <Link
-                to={`/projects/${lamaran.projectId}`}
-                className="w-full mt-auto py-3 bg-gray-100 dark:bg-gray-800/80 hover:bg-utama dark:hover:bg-utama hover:text-white dark:hover:text-white text-gelap dark:text-terang font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
-              >
-                Lihat Rincian Proyek <ChevronRight size={16} />
-              </Link>
+              <div className="flex gap-3 mt-auto">
+                <Link
+                  to={`/projects/${lamaran.projectId}`}
+                  className="grow py-3 bg-gray-100 dark:bg-gray-800/80 hover:bg-utama dark:hover:bg-utama hover:text-white dark:hover:text-white text-gelap dark:text-terang font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                >
+                  Lihat Rincian <ChevronRight size={16} />
+                </Link>
+                {lamaran.status === 'pending' && (
+                  <button
+                    onClick={() => batalkanLamaran(lamaran.id)}
+                    className="py-3 px-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-semibold rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors text-sm flex items-center justify-center"
+                    title="Tarik Lamaran"
+                  >
+                    Batal
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

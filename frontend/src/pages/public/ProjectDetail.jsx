@@ -212,7 +212,7 @@ export default function ProjectDetail() {
             <h3 className="text-2xl font-bold text-gelap dark:text-terang mb-2">Formulir Penawaran</h3>
             <p className="text-gray-500 mb-8">Berikan alasan mengapa kamu adalah orang yang tepat.</p>
 
-            <form onSubmit={kirimLamaran} className="space-y-6">
+            <form onSubmit={kirimLamaran} autoComplete="off" className="space-y-6">
               <div>
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Tawaran Harga (Rupiah)</label>
                 <div className="relative">

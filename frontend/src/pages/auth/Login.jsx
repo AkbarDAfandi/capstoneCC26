@@ -17,7 +17,7 @@ export default function Login() {
         const payload = JSON.parse(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
         arahkan(payload.role === 'client' ? '/dashboard/client' : '/dashboard/freelancer');
       } catch (e) {
-        // ojok dihapus komen iki
+        // jgn dihapus
       }
     }
   }, [arahkan]);
@@ -72,7 +72,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={tanganiKirim} className="space-y-5">
+        <form onSubmit={tanganiKirim} autoComplete="off" className="space-y-5">
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Alamat Email</label>
             <div className="relative">
