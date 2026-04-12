@@ -6,7 +6,7 @@ import routes from './routes.js';
 const app = express();
 
 app.use(cors({
-  origin: 'https://capstone-cc-26.vercel.app/',
+  origin: 'process.env.CLIENT_URL',
   credentials: true
 }));
 
