@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import routes from './routes.js';
+console.log('CLIENT_URL:', process.env.CLIENT_URL);
 
 const app = express();
 
