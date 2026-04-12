@@ -7,10 +7,10 @@ import {
 } from 'lucide-react';
 import tarikData from '../../api/koneksi';
 
-import TabRingkasan from './Tab/TabRingkasan';
-import TabLamaran from './Tab/TabLamaran';
-import TabPengaturan from './Tab/TabPengaturan';
-import TabUlasan from './Tab/TabUlasan';
+import TabRingkasan from './tab/TabRingkasan';
+import TabLamaran from './tab/TabLamaran';
+import TabPengaturan from './tab/TabPengaturan';
+import TabUlasan from './tab/TabUlasan';
 
 export default function DashboardFreelancer() {
   const arahkan = useNavigate();
