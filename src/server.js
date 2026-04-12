@@ -6,8 +6,13 @@ console.log('CLIENT_URL:', process.env.CLIENT_URL);
 
 const app = express();
 
+// app.use(cors({
+//   origin: process.env.CLIENT_URL,
+//   credentials: true
+// }));
+
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: true,
   credentials: true
 }));
 
