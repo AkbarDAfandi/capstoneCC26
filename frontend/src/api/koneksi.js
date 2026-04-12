@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const tarikData = axios.create({
-  baseURL: 'http://localhost:3000', 
+  baseURL: 'https://capstonecc26-production.up.railway.app', 
 });
 
 tarikData.interceptors.request.use((konfigurasi) => {
